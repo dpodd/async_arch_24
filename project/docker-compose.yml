@@ -1,0 +1,53 @@
+version: '3.8'
+
+x-db-defaults: &db-defaults
+  restart: always
+  image: postgres:latest
+  environment:
+    POSTGRES_USER: user
+    POSTGRES_PASSWORD: password
+
+services:
+  db_auth:
+    <<: *db-defaults
+    volumes:
+      - ./auth/.data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  db_tracker:
+    <<: *db-defaults
+    volumes:
+      - ./tracker/.data:/var/lib/postgresql/data
+    ports:
+      - "55432:5432"
+
+  auth:
+    restart: always
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    volumes:
+      - ./auth:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db_auth
+    environment:
+      DATABASE_URL: postgres://user:password@db_auth:5432/postgres
+
+  tracker:
+    restart: always
+    build:
+      context: ./tracker
+      dockerfile: Dockerfile
+    volumes:
+      - ./tracker:/app
+    ports:
+      - "9000:9000"
+    depends_on:
+      - db_tracker
+    environment:
+      DATABASE_URL: postgres://user:password@db_tracker:5432/postgres
+
+
