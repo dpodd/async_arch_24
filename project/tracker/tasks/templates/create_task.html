@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Create Task</h2>
+<form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="error" style="color: red;">
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {{ form.as_p }}
+    <button type="submit">Create Task</button>
+</form>
+{% endblock %}

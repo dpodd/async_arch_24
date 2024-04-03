@@ -27,8 +27,23 @@ SECRET_KEY = 'django-insecure-^zo0o)c_1mh49%d37&4!xhj8nayxue=qh@0wyf!uuvf2n$k^5o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['auth', 'tracker', 'localhost']
 
+AUTH_USER_MODEL = 'users.User'
+
+LOGOUT_URL = os.getenv('LOGOUT_URL')
+
+# Oauth2
+OAUTH_CLIENT_ID = os.getenv('OAUTH_CLIENT_ID')
+OAUTH_SECRET_KEY = os.getenv('OAUTH_SECRET_KEY')
+OAUTH_AUTHORIZATION_URL = os.getenv('OAUTH_AUTHORIZATION_URL')
+OAUTH_TOKEN_URL = os.getenv('OAUTH_TOKEN_URL')
+OAUTH_USERINFO_URL = os.getenv('OAUTH_USERINFO_URL')
+OAUTH_REDIRECT_URL = os.getenv('OAUTH_REDIRECT_URL')
+
+# kafka
+KAFKA_BROKER = os.getenv('KAFKA_BROKER')
+KAFKA_TOPIC = 'user_events'
 
 # Application definition
 
@@ -39,6 +54,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'tasks',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -49,6 +67,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'kafka_module.middleware.StartKafkaConsumerMiddleware',
 ]
 
 ROOT_URLCONF = 'settings.urls'
@@ -56,7 +76,7 @@ ROOT_URLCONF = 'settings.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -71,13 +91,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'settings.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
 }
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'oauth.backend.OAuth2Backend',
+]
 
 
 # Password validation
