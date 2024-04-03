@@ -22,6 +22,24 @@ services:
     ports:
       - "55432:5432"
 
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
   auth:
     restart: always
     build:
@@ -33,8 +51,10 @@ services:
       - "8000:8000"
     depends_on:
       - db_auth
+      - kafka
     environment:
       DATABASE_URL: postgres://user:password@db_auth:5432/postgres
+      KAFKA_BROKER: kafka:9092
 
   tracker:
     restart: always
@@ -44,10 +64,34 @@ services:
     volumes:
       - ./tracker:/app
     ports:
-      - "9000:9000"
+      - "9000:8000"
     depends_on:
       - db_tracker
+      - kafka
     environment:
       DATABASE_URL: postgres://user:password@db_tracker:5432/postgres
+      OAUTH_CLIENT_ID: ZGBwbR1o2Rz7awNOvU1nHoM4zFVzHLuGRLU7eJsy
+      OAUTH_SECRET_KEY: WmYRI81dDJRDJTHUZ49FjCOCGAYjoVZVwn0fyvnEkzlTtWd3PAk085aISbxtaAXx6WiBtT2sQUYn1lTmDjA6yFSQvCZQFi71C0xCcWL3kpsG6E6mN47FQImolGESL1BN
+      OAUTH_AUTHORIZATION_URL: http://localhost:8000/auth/o/authorize
+      OAUTH_TOKEN_URL: http://auth:8000/auth/o/token/
+      OAUTH_USERINFO_URL: http://auth:8000/auth/oauth/userinfo
+      OAUTH_REDIRECT_URL: http://localhost:9000/tracker/oauth/callback
+      OAUTHLIB_INSECURE_TRANSPORT: 1 # turn off 'https' requirement
+      LOGOUT_URL: http://localhost:8000/auth/logout/confirm/
+      KAFKA_BROKER: kafka:9092
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
 
+  kowl:
+    image: quay.io/cloudhut/kowl:latest
+    restart: always
+    ports:
+      - "8002:8080"
+    environment:
+      KAFKA_BROKERS: kafka:9092
+    depends_on:
+      - kafka

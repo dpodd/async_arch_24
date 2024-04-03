@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>My Tasks</h2>
+<form method="post" action="{% url 'complete_tasks' %}">
+    {% csrf_token %}
+    <table>
+        <thead>
+            <tr>
+                <th>Task Title</th>
+                <th>Task Description</th>
+                <th>Complete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.title }}</td>
+                <td>{{ task.description }}</td>
+                <td><input type="checkbox" name="task_ids" value="{{ task.id }}"></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit">Mark Selected as Completed</button>
+</form>
+{% endblock %}

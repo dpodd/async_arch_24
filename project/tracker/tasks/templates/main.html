@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="nav-links">
+    <a href="{% url 'create_task' %}">Create new task</a> |
+    <a href="{% url 'reassign_tasks' %}">Reassign all tasks</a>
+</div>
+
+<h2>Tasks</h2>
+<table style="width: 100%; margin-top: 20px;">
+    <thead>
+        <tr>
+            <th>Task ID</th>
+            <th>Description</th>
+            <th>Assigned To</th>
+            <th>Is completed?</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr>
+            <td>{{ task.id }}</td>
+            <td>{{ task.title }}</td>
+            <td>{{ task.assigned_to.first_name }} {{ task.assigned_to.last_name }}</td>
+            <td>{{ task.is_completed }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Users</h2>
+<table style="width: 100%; margin-top: 20px;">
+    <thead>
+        <tr>
+            <th>User ID</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Role</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.public_id }}</td>
+            <td>{{ user.first_name }} {{ user.last_name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.role }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
